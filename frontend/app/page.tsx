@@ -1,6 +1,6 @@
 "use client";
 
-import { SparklesPreview } from "@/frontend/components/sparkles-header";
+import { SparklesPreview } from "@/components/sparkles-header";
 
 export default function Home() {
   return (
