@@ -1,6 +1,4 @@
-"use client";
-import React from "react";
-import { SparklesCore } from "@/components/ui/sparkles";
+import { SparklesCore } from "@/components/ui/ace-sparkles";
 
 export function SparklesPreview() {
   return (

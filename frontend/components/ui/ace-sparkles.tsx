@@ -1,9 +1,16 @@
 "use client";
 
-import React from "react";
+// This is a hack to suppress the warning about missing defaultProps in recharts library as of version 2.12
+// @link https://github.com/recharts/recharts/issues/3615
+const error = console.error;
+console.error = (...args: any) => {
+  if (/defaultProps/.test(args[0])) return;
+  error(...args);
+};
+
 import { useEffect, useState } from "react";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
-import type { Container, Engine } from "@tsparticles/engine";
+import type { Container } from "@tsparticles/engine";
 import { loadSlim } from "@tsparticles/slim";
 import { cn } from "@/lib/utils";
 import { motion, useAnimation } from "framer-motion";
@@ -33,7 +40,6 @@ export const SparklesCore = (props: ParticlesProps) => {
 
   const particlesLoaded = async (container?: Container) => {
     if (container) {
-      console.log(container);
       controls.start({
         opacity: 1,
         transition: {
