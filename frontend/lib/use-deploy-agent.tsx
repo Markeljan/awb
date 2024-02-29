@@ -1,3 +1,6 @@
+"use client";
+import { useState } from "react";
+
 type deployAgentProps = {
   tokenName: string;
   tokenSymbol: string;
@@ -8,23 +11,30 @@ type deployAgentProps = {
 };
 
 export function useDeployAgent() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<any>(null);
+
   async function deployAgent(deployAgentProps: deployAgentProps) {
+    setLoading(true);
     const deploymentData = generateDeploymentPayload(deployAgentProps);
     try {
-      const response = await fetch("https://w3gpt.ai/api/deploy-contract", {
+      // TODO: create API Key or open CORS on w3gpt
+      const response = await fetch("https://web3gpt-5d6enxfn6-w3gpt.vercel.app/api/deploy-contract", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: {},
         body: JSON.stringify(deploymentData),
       });
-
-      return response.json();
+      const data = await response.json();
+      setData(data);
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
+      setError(error);
       console.error(error);
     }
   }
-  return { deployAgent };
+  return { deployAgent, data, loading, error };
 }
 
 function generateDeploymentPayload({

@@ -9,9 +9,7 @@ export function AgentFactoryForm() {
   const [agentDescription, setAgentDescription] = useState("");
   const [metadataUri, setMetadataUri] = useState("");
   const [sourceCodeUri, setSourceCodeUri] = useState("");
-  const [deployedAgent, setDeployedAgent] = useState(null);
-
-  const { deployAgent } = useDeployAgent();
+  const { data, loading, error, deployAgent } = useDeployAgent();
 
   return (
     <div className="flex flex-col max-w-2xl w-full">
@@ -50,21 +48,29 @@ export function AgentFactoryForm() {
         />
       </div>
       <button
-        onClick={async () => {
-          const agent = await deployAgent({
+        disabled={loading}
+        onClick={async () =>
+          await deployAgent({
             tokenName,
             tokenSymbol,
             agentName,
             agentDescription,
             metadataUri,
             sourceCodeUri,
-          });
-          setDeployedAgent(agent);
-        }}
+          })
+        }
       >
         Deploy Agent
       </button>
-      {deployedAgent && <div>{deployedAgent}</div>}
+      {loading ? (
+        <div>Loading...</div>
+      ) : data ? (
+        <a href={data?.explorerUrl} target="_blank" rel="noreferrer">
+          View on Explorer
+        </a>
+      ) : error ? (
+        <div>{JSON.stringify(error)}</div>
+      ) : null}
     </div>
   );
 }
