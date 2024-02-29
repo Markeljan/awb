@@ -17,6 +17,7 @@ $ curl -L https://foundry.paradigm.xyz | bash
 
 ```shell
 $ forge install foundry-rs/forge-std --no-git
+$ forge install OpenZeppelin/openzeppelin-contracts@v5.0.1 --no-git  
 ```
 
 ### Build

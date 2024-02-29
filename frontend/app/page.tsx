@@ -1,4 +1,6 @@
+import { AgentFactoryForm } from "@/components/agent-factory-form";
 import { SparklesPreview } from "@/components/sparkles-header";
+
 import { ParticleConnect } from "@/particle/components/connect";
 
 export default function Home() {
@@ -7,6 +9,7 @@ export default function Home() {
       <div className="flex flex-col max-w-2xl w-full">
         <SparklesPreview />
         <ParticleConnect />
+        <AgentFactoryForm />
       </div>
     </main>
   );
