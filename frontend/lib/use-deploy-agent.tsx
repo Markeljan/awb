@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type deployAgentProps = {
   tokenName: string;
@@ -20,6 +21,7 @@ export function useDeployAgent() {
     const deploymentData = generateDeploymentPayload(deployAgentProps);
     try {
       // TODO: create API Key or open CORS on w3gpt
+
       const response = await fetch("https://web3gpt-5d6enxfn6-w3gpt.vercel.app/api/deploy-contract", {
         method: "POST",
         headers: {},
@@ -28,6 +30,13 @@ export function useDeployAgent() {
       const data = await response.json();
       setData(data);
       setLoading(false);
+      toast("Agent deployed!", {
+        description: `Agent ${deployAgentProps.agentName} deployed successfully.`,
+        action: {
+          label: "View on Explorer",
+          onClick: () => window.open(data.explorerUrl, "_blank"),
+        },
+      });
     } catch (error) {
       setLoading(false);
       setError(error);

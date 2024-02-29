@@ -7,14 +7,19 @@ import { useEthereum, useConnect, useAuthCore } from "@particle-network/auth-cor
 import { PARTICLE_CONFIG } from "@/particle/config";
 import { SocialAuthType } from "@particle-network/auth-core";
 import { Button } from "@/components/ui/ace-button";
+import { toast } from "sonner";
 
 export const ParticleConnect = () => {
   const { userInfo } = useAuthCore();
   const { provider } = useEthereum();
-  const { connect, disconnect } = useConnect();
+  const { connect, disconnect, connectionStatus, connected } = useConnect();
+  const [mounted, setMounted] = useState(false);
   const [accountInfo, setAccountInfo] = useState<Account | null>(null);
   const [smartAccount, setSmartAccount] = useState<SmartAccount | null>(null);
-  const [lastTxHash, setLastTxHash] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     // initialize smart account
@@ -43,10 +48,17 @@ export const ParticleConnect = () => {
   }, [provider, userInfo]);
 
   const handleLogin = async (authType?: SocialAuthType) => {
-    if (!userInfo) {
+    if (connected) {
+      return;
+    }
+    try {
       await connect({
         ...(authType && { socialType: authType }),
         chain: BaseSepolia,
+      });
+    } catch (error) {
+      toast(`Failed to connect with ${authType || "Particle"}`, {
+        description: `Try again or use another method`,
       });
     }
   };
@@ -67,32 +79,38 @@ export const ParticleConnect = () => {
 
     const txHash = await smartAccount.sendUserOperation({ userOp: gaslessUserOp, userOpHash: gaslessUserOpHash });
 
-    setLastTxHash(txHash);
+    if (!txHash) return;
+
+    toast("Transaction sent", {
+      description: "Check the status on the blockchain",
+      action: {
+        label: "View on Explorer",
+        onClick: () => {
+          window.open(`https://sepolia.basescan.org/tx/${txHash}`, "_blank");
+        },
+      },
+    });
   };
 
+  if (!mounted || connectionStatus === "loading") return null;
+
   return (
-    <div className="flex flex-col items-center justify-center w-full">
+    <div className="flex flex-col items-center justify-center">
       {!userInfo ? (
         <div className="flex flex-col items-center w-full">
-          <Button onClick={() => handleLogin("google")}>Sign in with Google</Button>
+          <Button className="mb-2" onClick={() => handleLogin("google")}>
+            Sign in with Google
+          </Button>
           <Button onClick={() => handleLogin("twitter")}>Sign in with Twitter</Button>
-          <Button onClick={() => handleLogin()}>Sign in with Particle</Button>
+          <Button onClick={() => handleLogin()}>More options</Button>
         </div>
       ) : (
         <div className="flex flex-col items-center w-full">
-          <h2>{userInfo.name}</h2>
+          <h2>{userInfo?.name}</h2>
           <div className="flex flex-col items-center w-full">
             <Button onClick={executeUserOp}>Execute Transaction</Button>
             <Button onClick={() => disconnect()}>Logout</Button>
           </div>
-        </div>
-      )}
-      {lastTxHash && (
-        <div className="flex flex-col items-center w-full">
-          <h2>Last Transaction</h2>
-          <a href={`https://sepolia.basescan.org/tx/${lastTxHash}`} target="_blank" rel="noopener noreferrer">
-            {lastTxHash}
-          </a>
         </div>
       )}
     </div>

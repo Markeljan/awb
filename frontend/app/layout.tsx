@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import { Inter as FontSans } from "next/font/google";
+import { Chivo_Mono as FontSans } from "next/font/google";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 import { ParticleProvider } from "@/particle/provider";
+import { UIProvider } from "@/app/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -22,7 +24,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
-        <ParticleProvider>{children}</ParticleProvider>
+        <UIProvider>
+          <ParticleProvider>{children}</ParticleProvider>
+          <Toaster />
+        </UIProvider>
       </body>
     </html>
   );

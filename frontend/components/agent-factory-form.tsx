@@ -1,6 +1,8 @@
 "use client";
 import { useDeployAgent } from "@/lib/use-deploy-agent";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "./ui/input";
 
 export function AgentFactoryForm() {
   const [tokenName, setTokenName] = useState("");
@@ -12,22 +14,22 @@ export function AgentFactoryForm() {
   const { data, loading, error, deployAgent } = useDeployAgent();
 
   return (
-    <div className="flex flex-col max-w-2xl w-full">
-      <div className="flex flex-col">
+    <div className="flex flex-col max-w-2xl w-full bg-white dark:bg-black p-4 rounded-lg shadow-2xl space-y-2">
+      <div className="flex flex-col ">
         <label htmlFor="tokenName">Token Name</label>
-        <input id="tokenName" type="text" value={tokenName} onChange={(e) => setTokenName(e.target.value)} />
+        <Input id="tokenName" type="text" value={tokenName} onChange={(e) => setTokenName(e.target.value)} />
       </div>
       <div className="flex flex-col">
         <label htmlFor="tokenSymbol">Token Symbol</label>
-        <input id="tokenSymbol" type="text" value={tokenSymbol} onChange={(e) => setTokenSymbol(e.target.value)} />
+        <Input id="tokenSymbol" type="text" value={tokenSymbol} onChange={(e) => setTokenSymbol(e.target.value)} />
       </div>
       <div className="flex flex-col">
         <label htmlFor="agentName">Agent Name</label>
-        <input id="agentName" type="text" value={agentName} onChange={(e) => setAgentName(e.target.value)} />
+        <Input id="agentName" type="text" value={agentName} onChange={(e) => setAgentName(e.target.value)} />
       </div>
       <div className="flex flex-col">
         <label htmlFor="agentDescription">Agent Description</label>
-        <input
+        <Input
           id="agentDescription"
           type="text"
           value={agentDescription}
@@ -36,18 +38,18 @@ export function AgentFactoryForm() {
       </div>
       <div className="flex flex-col">
         <label htmlFor="metadataUri">Metadata URI</label>
-        <input id="metadataUri" type="text" value={metadataUri} onChange={(e) => setMetadataUri(e.target.value)} />
+        <Input id="metadataUri" type="text" value={metadataUri} onChange={(e) => setMetadataUri(e.target.value)} />
       </div>
       <div className="flex flex-col">
         <label htmlFor="sourceCodeUri">Source Code URI</label>
-        <input
+        <Input
           id="sourceCodeUri"
           type="text"
           value={sourceCodeUri}
           onChange={(e) => setSourceCodeUri(e.target.value)}
         />
       </div>
-      <button
+      <Button
         disabled={loading}
         onClick={async () =>
           await deployAgent({
@@ -61,7 +63,7 @@ export function AgentFactoryForm() {
         }
       >
         Deploy Agent
-      </button>
+      </Button>
       {loading ? (
         <div>Loading...</div>
       ) : data ? (
