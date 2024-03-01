@@ -5,6 +5,10 @@ const sandbox = {
   console: console,
   require: require,
   OpenAI: OpenAI,
+  openRouter: new OpenAI({
+    apiKey: process.env.OPEN_ROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1",
+  }),
   process: {
     ...process,
     env: {
@@ -18,7 +22,13 @@ const fetchCode = async (uri: string) => {
   return await response.text();
 };
 
-export const executeCodeVm = async ({ uri }: { uri: string }) => {
+export const executeCodeVm = async ({
+  uri,
+  prompt,
+}: {
+  uri: string;
+  prompt: string;
+}) => {
   const code = await fetchCode(uri);
 
   const transpiler = new Bun.Transpiler({
@@ -26,12 +36,16 @@ export const executeCodeVm = async ({ uri }: { uri: string }) => {
     target: "node",
   });
 
-  const transpiledCode = transpiler.transformSync(code);
+  const transpiledCode = transpiler.transformSync(
+    `${code}\nmain({prompt: "${prompt}"}).then((result) => result).catch(console.error);`
+  );
 
   vm.createContext(sandbox);
 
   try {
-    vm.runInContext(transpiledCode, sandbox);
+    const result = await vm.runInContext(transpiledCode, sandbox);
+
+    return result;
   } catch (error) {
     console.log(error);
   }

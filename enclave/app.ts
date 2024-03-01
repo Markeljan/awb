@@ -14,13 +14,21 @@ new Elysia()
       blockNumber: (await client.getBlockNumber()).toString(),
     };
   })
-  .post("/run", async ({ body: { uri } }: { body: { uri: string } }) => {
-    const result = await executeCodeVm({
-      uri,
-    });
+  .post(
+    "/run",
+    async ({
+      body: { uri, prompt },
+    }: {
+      body: { uri: string; prompt: string };
+    }) => {
+      const result = await executeCodeVm({
+        uri,
+        prompt,
+      });
 
-    return result;
-  })
+      return result;
+    }
+  )
   .listen(4000, () => {
     console.log("Listening on http://localhost:4000");
   });
