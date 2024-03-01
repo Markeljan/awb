@@ -1,0 +1,22 @@
+{
+  "name": "bun-awb",
+  "module": "app.ts",
+  "main": "app.ts",
+  "type": "module",
+  "scripts": {
+    "build": "bun build --compile --minify --sourcemap ./app.ts --outfile ./out/app",
+    "build:enclave": "sudo docker run -it --privileged -v `pwd`:/app/mount marlinorg/enclave-builder"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "elysia": "^0.8.17",
+    "nft.storage": "^7.1.1",
+    "openai": "^4.28.4",
+    "viem": "^2.7.16"
+  }
+}

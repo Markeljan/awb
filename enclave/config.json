@@ -1,0 +1,16 @@
+{
+  "caddy": {
+    "url": "",
+    "caddyfile": ""
+  },
+  "params": {},
+  "service_commands": [
+    {
+      "name": "node_app",
+      "command": "/app/mount/app",
+      "build_commands": [""],
+      "ports": [4000],
+      "env": {}
+    }
+  ]
+}
