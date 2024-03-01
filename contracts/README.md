@@ -17,7 +17,7 @@ $ curl -L https://foundry.paradigm.xyz | bash
 
 ```shell
 $ forge install foundry-rs/forge-std --no-git
-$ forge install OpenZeppelin/openzeppelin-contracts@v5.0.1 --no-git  
+$ forge install OpenZeppelin/openzeppelin-contracts@v5.0.1 --no-git
 ```
 
 ### Build
@@ -54,6 +54,10 @@ $ anvil
 
 ```shell
 $ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+
+# deploy with wallet save
+$ forge script --rpc-url $BASE_SEPOLIA_RPC --account awb --etherscan-api-key $BASE_SEPOLIA_API_KEY  --verify --broadcast -vvv script/AWBAgent.s.sol
+
 ```
 
 ### Cast
