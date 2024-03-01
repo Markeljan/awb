@@ -1,51 +1,52 @@
 // SPDX-License-Identifier: MIT
-// Compatible with OpenZeppelin Contracts ^5.0.0
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/governance/Governor.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorStorage.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 
 /// @custom:security-contact contact@agentswithbenefits.xyz
 contract DAOGovernor is
     Governor,
-    GovernorSettings,
     GovernorCountingSimple,
-    GovernorStorage,
     GovernorVotes,
     GovernorVotesQuorumFraction
 {
+    uint256 internal initialVotingDelay;
+    uint256 internal initialVotingPeriod;
+    uint256 internal initialProposalThreshold;
+
     constructor(
-        IVotes _token
+        string memory _name,
+        IVotes _token,
+        uint256 _votingDelay,
+        uint256 _votingPeriod,
+        uint256 _proposalThreshold,
+        uint256 _quorumVotes
     )
-        Governor("DAOGovernor")
-        GovernorSettings(43200 /* 1 day */, 302400 /* 1 week */, 12e18)
+        Governor(_name)
         GovernorVotes(_token)
-        GovernorVotesQuorumFraction(51)
-    {}
+        GovernorVotesQuorumFraction(_quorumVotes)
+    {
+        initialVotingDelay = _votingDelay;
+        initialVotingPeriod = _votingPeriod;
+        initialProposalThreshold = _proposalThreshold;
+    }
+
+    function votingDelay() public view override returns (uint256) {
+        return initialVotingDelay;
+    }
+
+    function votingPeriod() public view override returns (uint256) {
+        return initialVotingPeriod;
+    }
+
+    function proposalThreshold() public view override returns (uint256) {
+        return initialProposalThreshold;
+    }
 
     // The following functions are overrides required by Solidity.
-
-    function votingDelay()
-        public
-        view
-        override(Governor, GovernorSettings)
-        returns (uint256)
-    {
-        return super.votingDelay();
-    }
-
-    function votingPeriod()
-        public
-        view
-        override(Governor, GovernorSettings)
-        returns (uint256)
-    {
-        return super.votingPeriod();
-    }
 
     function quorum(
         uint256 blockNumber
@@ -56,25 +57,5 @@ contract DAOGovernor is
         returns (uint256)
     {
         return super.quorum(blockNumber);
-    }
-
-    function proposalThreshold()
-        public
-        view
-        override(Governor, GovernorSettings)
-        returns (uint256)
-    {
-        return super.proposalThreshold();
-    }
-
-    function _propose(
-        address[] memory targets,
-        uint256[] memory values,
-        bytes[] memory calldatas,
-        string memory description,
-        address proposer
-    ) internal override(Governor, GovernorStorage) returns (uint256) {
-        return
-            super._propose(targets, values, calldatas, description, proposer);
     }
 }

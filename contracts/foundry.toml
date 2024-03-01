@@ -4,3 +4,11 @@ out = "out"
 libs = ["lib"]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+
+
+[rpc_endpoints]
+baseSepolia = "${BASE_SEPOLIA_RPC_URL}"
+
+[etherscan]
+baseSepolia = { key = "${BASE_SEPOLIA_API_KEY}" }
