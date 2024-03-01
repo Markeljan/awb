@@ -1,5 +1,6 @@
 import vm from "node:vm";
 import OpenAI from "openai";
+import * as nearAPI from "near-api-js";
 
 const sandbox = {
   console: console,
@@ -9,6 +10,11 @@ const sandbox = {
     apiKey: process.env.OPEN_ROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",
   }),
+  libraries: {
+    web3: {
+      nearAPI,
+    },
+  },
   process: {
     ...process,
     env: {

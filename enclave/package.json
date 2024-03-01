@@ -17,6 +17,7 @@
     "elysia": "^0.8.17",
     "langchain": "^0.1.25",
     "nanoid": "^5.0.6",
+    "near-api-js": "^3.0.3",
     "nft.storage": "^7.1.1",
     "openai": "^4.28.4",
     "viem": "^2.7.16"
