@@ -2,17 +2,17 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import "../src/AWBToken.sol"; // Adjust the path according to your project structure
+import "../src/DAOToken.sol"; // Adjust the path according to your project structure
 
-contract AWBTokenTest is Test {
-    AWBToken public awbToken;
+contract DAOTokenTest is Test {
+    DAOToken public daoToken;
     address public mintAddress = address(1);
     uint256 public initialSupply = 1e24; // 1 million tokens, for example
 
     function setUp() public {
-        awbToken = new AWBToken(
+        daoToken = new DAOToken(
             "AgentsWithBenefits",
-            "AWB",
+            "DAO",
             mintAddress,
             initialSupply
         );
@@ -21,7 +21,7 @@ contract AWBTokenTest is Test {
     function testInitialMint() public {
         // Check if the mintAddress received the initial supply
         assertEq(
-            awbToken.balanceOf(mintAddress),
+            daoToken.balanceOf(mintAddress),
             initialSupply,
             "Initial supply was not minted correctly"
         );
@@ -33,16 +33,16 @@ contract AWBTokenTest is Test {
 
         // Simulate transfer from mintAddress to recipient
         vm.prank(mintAddress);
-        awbToken.transfer(recipient, transferAmount);
+        daoToken.transfer(recipient, transferAmount);
 
         // Check balances after transfer
         assertEq(
-            awbToken.balanceOf(mintAddress),
+            daoToken.balanceOf(mintAddress),
             initialSupply - transferAmount,
             "Incorrect balance for mintAddress after transfer"
         );
         assertEq(
-            awbToken.balanceOf(recipient),
+            daoToken.balanceOf(recipient),
             transferAmount,
             "Incorrect balance for recipient after transfer"
         );
@@ -53,16 +53,16 @@ contract AWBTokenTest is Test {
 
         // Simulate mintAddress burning some of its tokens
         vm.prank(mintAddress);
-        awbToken.burn(burnAmount);
+        daoToken.burn(burnAmount);
 
         // Check total supply and mintAddress balance after burn
         assertEq(
-            awbToken.totalSupply(),
+            daoToken.totalSupply(),
             initialSupply - burnAmount,
             "Incorrect total supply after burn"
         );
         assertEq(
-            awbToken.balanceOf(mintAddress),
+            daoToken.balanceOf(mintAddress),
             initialSupply - burnAmount,
             "Incorrect balance for mintAddress after burn"
         );
@@ -71,11 +71,11 @@ contract AWBTokenTest is Test {
     function testVotePower() public {
         // Assuming mintAddress decides to delegate votes to itself
         vm.prank(mintAddress);
-        awbToken.delegate(mintAddress);
+        daoToken.delegate(mintAddress);
 
         // Check vote power of mintAddress
         assertEq(
-            awbToken.getVotes(mintAddress),
+            daoToken.getVotes(mintAddress),
             initialSupply,
             "Incorrect vote power for mintAddress"
         );
