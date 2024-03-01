@@ -5,7 +5,7 @@ export default defineConfig({
   out: "lib/generated.ts",
   contracts: [],
   plugins: [
-    //react({}),
+    react(),
     foundry({
       forge: {
         build: false,
