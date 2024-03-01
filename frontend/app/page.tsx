@@ -4,9 +4,9 @@ import { AceGridBackground } from "@/components/ui/ace-grid-background";
 import { AceTitle } from "@/components/ui/ace-title";
 import { Navbar } from "@/components/Navbar";
 import { RankTab } from "@/components/Rank";
+import { TryAgent } from "@/components/TryAgentChat";
 
 import { ParticleConnect } from "@/particle/components/connect";
-import { TryAgent } from "@/components/TryAgent";
 
 export default function Home() {
   return (
@@ -15,11 +15,11 @@ export default function Home() {
       <AceGridBackground>
         <div className="flex flex-col max-w-xs md:max-w-4xl w-full mt-20 items-center mx-auto">
           <AceTitle className="text-center" text="Agents With Benefits" />
-          <AgentFactoryForm />
-          <div className="pt-10 pb-10">
+          
+          <div>
             <TryAgent></TryAgent>
             <RankTab></RankTab>
-
+            <AgentFactoryForm />
           </div>
         </div>
 
