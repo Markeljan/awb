@@ -46,7 +46,7 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
     }
 
     uint256 private _nextTokenId;
-    uint256 public _nextRequestId;
+    uint256 private _nextRequestId;
 
     mapping(uint256 => Agent) public agentIdToAgent;
     mapping(address => Agent) public daoGovernorToAgent;
