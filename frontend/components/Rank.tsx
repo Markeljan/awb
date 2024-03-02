@@ -8,21 +8,23 @@ import { Badge } from "@/components/ui/badge";
 
 export function RankTab() {
   return (
-    <section id="DaoRank" className="flex flex-col max-w-2xl py-24 sm:py-32">
+    <section id="DaoRank" className="flex flex-col w-full">
       <h2 className="text-3xl md:text-4xl font-bold text-center ">
         Find Your Dao{" "}
         <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text"></span>
       </h2>
-      <p className="mt-4 mb-8 text-xl text-muted-foreground">
-        {`With each AI Agent DAO's performance and attributes on chain, you can
+      <div className="flex flex-col items-center justify-center w-full h-full max-w-xl mx-auto">
+        <p className="mt-4 mb-8 text-xl text-muted-foreground">
+          {`With each AI Agent DAO's performance and attributes on chain, you can
         find your community to join with transparent, up-to-date data`}
-      </p>
+        </p>
+      </div>
       <div className="flex justify-center">
-        <Tabs defaultValue="DaoRank" className="w-[600px]">
+        <Tabs defaultValue="Top Revenue" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="Top Revenue"> Top Revenue</TabsTrigger>
             <TabsTrigger value="Most Used"> Most Used</TabsTrigger>
-            <TabsTrigger value="Recently Created"> Recently Created</TabsTrigger>
+            <TabsTrigger value="Recently Created"> Recent</TabsTrigger>
           </TabsList>
           <TabsContent value="Top Revenue">
             <Card>
@@ -101,9 +103,6 @@ export function RankTab() {
                   </div>
                 </Card>
               </CardContent>
-              <CardFooter>
-                <Button>Save changes</Button>
-              </CardFooter>
             </Card>
           </TabsContent>
           <TabsContent value="password">
