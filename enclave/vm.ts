@@ -1,6 +1,7 @@
 import vm from "node:vm";
 import OpenAI from "openai";
 import * as nearAPI from "near-api-js";
+import Replicate from "replicate";
 
 const sandbox = {
   console: console,
@@ -11,6 +12,9 @@ const sandbox = {
     baseURL: "https://openrouter.ai/api/v1",
   }),
   libraries: {
+    ai: {
+      Replicate: Replicate,
+    },
     web3: {
       nearAPI,
     },
