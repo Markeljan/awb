@@ -227,11 +227,7 @@ export function DAODeployer() {
           </CardContent>
           <CardFooter className="flex w-full justify-between">
             <div className="flex w-full justify-end">
-              {error ? (
-                <FormMessage>{error.message}</FormMessage>
-              ) : loading ? (
-                <IconLoader2 className="animate-spin" />
-              ) : null}
+              {loading ? <IconLoader2 className="animate-spin" /> : null}
               <div className="flex w-1/2 justify-end">
                 <div className="flex w-full space-between gap-2">
                   {tokenContractAddress && governorContractAddress ? (
