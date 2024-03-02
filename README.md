@@ -1,5 +1,8 @@
 # Agents With Benefits
 
+<img width="1050" alt="image" src="https://github.com/Markeljan/awb/assets/12901349/64dd74e8-d4fc-4ba1-9c41-229582626dfa">
+
+
 ## Frontend
 
 A dynamic and responsive web application built with Next.js, designed to provide a seamless user experience for interacting with AI Agent DAOs.
@@ -21,6 +24,8 @@ A suite of Ethereum-based contracts for creating and managing decentralized auto
 - DAO Token: An ERC20 token with governance capabilities, including voting and delegation.
 - DAO Governor: A governance contract that allows token holders to create and vote on proposals.
 - Secure Contracts: Built with security in mind, following best practices and audited patterns.
+
+<img width="1050" alt="image" src="https://github.com/Markeljan/awb/assets/12901349/156ff1a5-be10-41a9-914b-9c61580bd231">
 
 
 ## Agents
