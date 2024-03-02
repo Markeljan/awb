@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 
 export function RankTab() {
   return (
-    <section id="DaoRank" className="container py-24 sm:py-32">
+    <section id="DaoRank" className="flex flex-col max-w-2xl py-24 sm:py-32">
       <h2 className="text-3xl md:text-4xl font-bold text-center ">
         Find Your Dao{" "}
         <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text"></span>
@@ -24,7 +24,7 @@ export function RankTab() {
             <TabsTrigger value="Most Used"> Most Used</TabsTrigger>
             <TabsTrigger value="Recently Created"> Recently Created</TabsTrigger>
           </TabsList>
-          <TabsContent value="DaoRank">
+          <TabsContent value="Top Revenue">
             <Card>
               <CardHeader>
                 <CardTitle>📈 Top Revenue</CardTitle>

@@ -1,4 +1,104 @@
-// SPDX-License-Identifier: MIT
+export const tokenSourceCode = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+
+/// @custom:security-contact contact@agentswithbenefits.xyz
+contract DAOToken is ERC20, ERC20Burnable, ERC20Permit, ERC20Votes {
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        address _mintAddress,
+        uint256 _totalSupply
+    ) ERC20(_name, _symbol) ERC20Permit(_name) {
+        _mint(_mintAddress, _totalSupply);
+    }
+
+    // The following functions are overrides required by Solidity.
+
+    function _update(
+        address from,
+        address to,
+        uint256 value
+    ) internal override(ERC20, ERC20Votes) {
+        super._update(from, to, value);
+    }
+
+    function nonces(
+        address owner
+    ) public view override(ERC20Permit, Nonces) returns (uint256) {
+        return super.nonces(owner);
+    }
+}
+`;
+
+export const governorSourceCode = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/governance/Governor.sol";
+import "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
+import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
+import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
+
+/// @custom:security-contact contact@agentswithbenefits.xyz
+contract DAOGovernor is
+    Governor,
+    GovernorCountingSimple,
+    GovernorVotes,
+    GovernorVotesQuorumFraction
+{
+    uint256 internal initialVotingDelay;
+    uint256 internal initialVotingPeriod;
+    uint256 internal initialProposalThreshold;
+
+    constructor(
+        string memory _name,
+        IVotes _token,
+        uint256 _votingDelay,
+        uint256 _votingPeriod,
+        uint256 _proposalThreshold,
+        uint256 _quorumVotes
+    )
+        Governor(_name)
+        GovernorVotes(_token)
+        GovernorVotesQuorumFraction(_quorumVotes)
+    {
+        initialVotingDelay = _votingDelay;
+        initialVotingPeriod = _votingPeriod;
+        initialProposalThreshold = _proposalThreshold;
+    }
+
+    function votingDelay() public view override returns (uint256) {
+        return initialVotingDelay;
+    }
+
+    function votingPeriod() public view override returns (uint256) {
+        return initialVotingPeriod;
+    }
+
+    function proposalThreshold() public view override returns (uint256) {
+        return initialProposalThreshold;
+    }
+
+    // The following functions are overrides required by Solidity.
+
+    function quorum(
+        uint256 blockNumber
+    )
+        public
+        view
+        override(Governor, GovernorVotesQuorumFraction)
+        returns (uint256)
+    {
+        return super.quorum(blockNumber);
+    }
+}
+`;
+
+export const registrySourceCode = `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -92,7 +192,7 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
             requestIds: new uint256[](0),
             active: true
         });
-        
+
         agentIdToAgent[tokenId] = agent;
         daoGovernorToAgent[msg.sender] = agent;
         agents.push(agent);
@@ -331,3 +431,4 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
         return super.supportsInterface(interfaceId);
     }
 }
+`;
