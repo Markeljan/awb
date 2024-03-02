@@ -12,8 +12,6 @@ export const client = createPublicClient({
   transport: http(),
 });
 
-// TODO: listen to request events
-
 new Elysia()
   .get("/", async () => {
     return {

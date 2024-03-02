@@ -94,10 +94,9 @@ const cardData = [
 export function TryAgent() {
   return (
     <section id="DaoRank" className="flex flex-col">
-      <h2 className="text-3xl md:text-4xl font-bold text-center">AI Agents powered by DAOS</h2>
-      <h2 className="text-3xl md:text-4xl font-bold text-center">Custom AI Agents Deployed as a DAO</h2>
+      <h2 className="text-3xl md:text-4xl font-bold text-center">Custom AI Agents deployed as DAOs</h2>
       <p className="mt-4 mb-8 text-xl text-muted-foreground px-4 max-w-xl mx-auto">
-        DAO members can collaboratively govern an AI Agent and grow with the Agent while getting shared revenue
+        {`A new way to interact with DAOs and their members through a incentivized trustless network that accelerates DAO growth and AI agent development.`}
       </p>
       <div className="flex justify-center">
         <div className="pt-20 gap-4">

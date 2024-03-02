@@ -50,7 +50,7 @@ export function DAODeployer() {
       totalSupply: "21000000",
     },
   });
-  const { data, error, deploy, loading } = useDeployContract();
+  const [loading, setLoading] = useState(false);
   const { state, dispatch } = useGlobalState();
   const smartAccount = state.smartAccount;
   const smartAccountInfo = state.smartAccountInfo;
@@ -63,8 +63,9 @@ export function DAODeployer() {
       toast.error("Please connect via Particle to deploy a DAO");
       return;
     }
-
+    setLoading(true);
     await deployWithSmartAccount(data);
+    setLoading(false);
   }
 
   async function deployWithSmartAccount(data: z.infer<typeof FormSchema>) {
