@@ -2,7 +2,7 @@ import { defineConfig } from "@wagmi/cli";
 import { foundry, react } from "@wagmi/cli/plugins";
 
 export default defineConfig({
-  out: "lib/generated.ts",
+  out: "lib/generated-react.ts",
   contracts: [],
   plugins: [
     react(),
