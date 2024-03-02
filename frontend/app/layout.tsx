@@ -15,6 +15,20 @@ const fontSans = FontSans({
 export const metadata: Metadata = {
   title: "Agents With Benefits",
   description: "Source ideas, build agents, govern with DAOs.",
+  openGraph: {
+    title: "Agents With Benefits",
+    description: "Source ideas, build agents, govern with DAOs.",
+    type: "website",
+    url: "https://agentswithbenefits.xyz",
+    images: [
+      {
+        url: "https://agentswithbenefits.xyz/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Agents With Benefits",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
