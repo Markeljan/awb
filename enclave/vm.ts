@@ -2,6 +2,7 @@ import vm from "node:vm";
 import OpenAI from "openai";
 import * as nearAPI from "near-api-js";
 import Replicate from "replicate";
+import { crossChain } from "./omni-chain/near";
 
 const sandbox = {
   console: console,
@@ -13,10 +14,13 @@ const sandbox = {
   }),
   libraries: {
     ai: {
-      Replicate: Replicate,
+      replicate: new Replicate({
+        auth: process.env.REPLICATE_API_KEY,
+      }),
     },
     web3: {
       nearAPI,
+      crossChain
     },
   },
   process: {
@@ -39,20 +43,20 @@ export const executeCodeVm = async ({
   uri: string;
   prompt: string;
 }) => {
-  const code = await fetchCode(uri);
-
-  const transpiler = new Bun.Transpiler({
-    loader: "tsx",
-    target: "node",
-  });
-
-  const transpiledCode = transpiler.transformSync(
-    `${code}\nmain({prompt: "${prompt}"}).then((result) => result).catch(console.error);`
-  );
-
-  vm.createContext(sandbox);
-
   try {
+    const code = await fetchCode(uri);
+
+    const transpiler = new Bun.Transpiler({
+      loader: "tsx",
+      target: "node",
+    });
+
+    const transpiledCode = transpiler.transformSync(
+      `${code}\nmain({prompt: "${prompt}"}).then((result) => result).catch(console.error);`
+    );
+
+    vm.createContext(sandbox);
+
     const result = await vm.runInContext(transpiledCode, sandbox);
 
     return result;
