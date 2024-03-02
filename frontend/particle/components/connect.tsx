@@ -2,20 +2,24 @@
 
 import React, { useState, useEffect } from "react";
 import { BaseSepolia } from "@particle-network/chains";
-import { Account, SmartAccount } from "@particle-network/aa";
+import { SmartAccount } from "@particle-network/aa";
 import { useEthereum, useConnect, useAuthCore } from "@particle-network/auth-core-modal";
 import { PARTICLE_CONFIG } from "@/particle/config";
 import { SocialAuthType } from "@particle-network/auth-core";
 import { Button } from "@/components/ui/ace-button";
 import { toast } from "sonner";
+import { useGlobalState } from "../global-state-provider";
 
 export const ParticleConnect = () => {
+  const {
+    state: { smartAccount, smartAccountInfo },
+    dispatch,
+  } = useGlobalState();
+
   const { userInfo } = useAuthCore();
   const { provider } = useEthereum();
   const { connect, disconnect, connectionStatus, connected } = useConnect();
   const [mounted, setMounted] = useState(false);
-  const [accountInfo, setAccountInfo] = useState<Account | null>(null);
-  const [smartAccount, setSmartAccount] = useState<SmartAccount | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -34,18 +38,19 @@ export const ParticleConnect = () => {
         },
       },
     });
+
     smartAccount.setSmartAccountContract({ name: "SIMPLE", version: "1.0.0" });
-    setSmartAccount(smartAccount);
 
     async function getSmartAccountInfo() {
       const accountInfo = await smartAccount.getAccount();
-      setAccountInfo(accountInfo);
+      dispatch({ type: "SET_SMART_ACCOUNT", payload: smartAccount });
+      dispatch({ type: "SET_SMART_ACCOUNT_INFO", payload: accountInfo });
     }
 
     if (smartAccount) {
       getSmartAccountInfo();
     }
-  }, [provider, userInfo]);
+  }, [provider, userInfo, dispatch]);
 
   const handleLogin = async (authType?: SocialAuthType) => {
     if (connected) {

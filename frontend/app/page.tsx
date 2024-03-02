@@ -5,7 +5,7 @@ import { RankTab } from "@/components/Rank";
 import { TryAgent } from "@/components/TryAgentChat";
 
 import { ParticleConnect } from "@/particle/components/connect";
-import { TokenDeployCard } from "@/components/deploy-card";
+import { DAODeployer } from "@/components/dao-deployer";
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
         <AceTitle className="text-center mt-24" text="Agents With Benefits" />
         <TryAgent />
         <RankTab />
-        <TokenDeployCard />
+        <DAODeployer />
 
         <div className="flex w-full h-full justify-center">
           <ParticleConnect />

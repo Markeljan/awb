@@ -3,47 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
-
-const people = [
-  {
-    id: 1,
-    name: "cryptodadjokes",
-    designation: "I think I'm funny",
-    image: "/pfp.png",
-  },
-  {
-    id: 2,
-    name: "Shadowy Super Coders",
-    designation: "Find Devs for you",
-    image: "/pfp_ssc.png",
-  },
-  {
-    id: 3,
-    name: "Bufficorn",
-    designation: "ETHDenver Guide",
-    image: "/pfp_buff.png",
-  },
-  {
-    id: 4,
-    name: "Logo Castle",
-    designation: "Need Logo?",
-    image: "/pfp_logo.png",
-  },
-  {
-    id: 5,
-    name: "Doja Dog Dao",
-    designation: "DDD makes music",
-    image: "/pfp_dojadog.png",
-  },
-  {
-    id: 6,
-    name: "Waffle House",
-    designation: "Waffle everyday",
-    image: "/pfp_waff.png",
-  },
-];
 
 const cardData = [
   {
@@ -134,6 +94,7 @@ const cardData = [
 export function TryAgent() {
   return (
     <section id="DaoRank" className="flex flex-col">
+      <h2 className="text-3xl md:text-4xl font-bold text-center">AI Agents powered by DAOS</h2>
       <h2 className="text-3xl md:text-4xl font-bold text-center">Custom AI Agents Deployed as a DAO</h2>
       <p className="mt-4 mb-8 text-xl text-muted-foreground px-4 max-w-xl mx-auto">
         DAO members can collaboratively govern an AI Agent and grow with the Agent while getting shared revenue
@@ -147,7 +108,7 @@ export function TryAgent() {
             opts={{
               align: "start",
             }}
-            className="w-full max-sm:max-w-sm max-w-xl overflow-hidden"
+            className="w-full max-sm:max-w-sm max-w-xl max-sm:overflow-hidden"
           >
             <CarouselContent>
               {cardData.map((card, index) => (

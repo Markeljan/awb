@@ -5,6 +5,7 @@ import "./globals.css";
 import { ParticleProvider } from "@/particle/provider";
 import { UIProvider } from "@/app/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { GlobalStateProvider } from "@/particle/global-state-provider";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -24,10 +25,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
-        <UIProvider>
-          <ParticleProvider>{children}</ParticleProvider>
-          <Toaster />
-        </UIProvider>
+        <GlobalStateProvider>
+          <UIProvider>
+            <ParticleProvider>{children}</ParticleProvider>
+            <Toaster />
+          </UIProvider>
+        </GlobalStateProvider>
       </body>
     </html>
   );
