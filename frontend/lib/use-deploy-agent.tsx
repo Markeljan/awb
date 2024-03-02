@@ -4,8 +4,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { baseSepolia } from "viem/chains";
 
-const W3GPT_API_URL = `${process.env.NEXT_PUBLIC_W3GPT_API_URL}`;
-
 export type DAOTokenArgs = [tokenName: string, symbol: string, mintAddress: string, totalSupply: string];
 
 export type DAOGovernorArgs = [
@@ -32,15 +30,14 @@ export function useDeployContract() {
   async function deploy({ contractName, constructorArgs, sourceCode, chainId = baseSepolia.id }: deployContractProps) {
     setLoading(true);
     try {
-      // TODO: create API Key or open CORS on w3gpt
-      const response = await fetch(W3GPT_API_URL, {
+      const response = await fetch("http://localhost:3001/api/deploy-contract", {
         method: "POST",
         headers: {},
         body: JSON.stringify({
           contractName,
           chainId,
           sourceCode,
-          ...constructorArgs,
+          constructorArgs,
         }),
       });
       const data = await response.json();
@@ -49,8 +46,12 @@ export function useDeployContract() {
       toast("Contract deployed!", {
         description: `${contractName} deployed successfully to base.`,
         action: {
-          label: "View on Explorer",
-          onClick: () => window.open(data.explorerUrl, "_blank"),
+          label: (
+            <a href={data.explorerUrl} target="_blank">
+              View on Explorer
+            </a>
+          ),
+          onClick: () => {},
         },
       });
 
