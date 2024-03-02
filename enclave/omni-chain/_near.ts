@@ -6,6 +6,26 @@ import type { Web3ContextInitOptions } from "web3-core";
 import type { RegisteredSubscription } from "web3-eth";
 import { KeyPair, connect, keyStores, providers } from "near-api-js";
 import { functionCall } from "near-api-js/lib/transaction";
+import {
+  createPublicClient,
+  createWalletClient,
+  fromHex,
+  hashMessage,
+  http,
+  serializeTransaction,
+  toHex,
+} from "viem";
+import { baseSepolia } from "viem/chains";
+
+export const client = createPublicClient({
+  chain: baseSepolia,
+  transport: http(),
+});
+
+export const walletClient = createWalletClient({
+  chain: baseSepolia,
+  transport: http(),
+});
 
 const ONE_ETH = 1000000000000n;
 const TGAS = 1000000000000;
@@ -44,24 +64,19 @@ async function getBalance(
   return Number((balance * 100n) / ONE_ETH) / 100;
 }
 
-async function createPayload(
-  web3: any,
-  chain_id: any,
-  sender: any,
-  receiver: any
-) {
-  const common = new Common({ chain: chain_id });
-
-  const _web3 = await web3;
+async function createPayload(chain_id: any, sender: any, receiver: any) {
+  const common = Common.custom({ chainId: chain_id });
 
   // Get the nonce
-  const nonce = await _web3.eth.getTransactionCount(sender);
+  const nonce = await client.getTransactionCount({
+    address: sender,
+  });
 
-  const {maxFeePerGas, maxPriorityFeePerGas} = await queryGasPrice();
+  const { maxFeePerGas, maxPriorityFeePerGas } = await queryGasPrice();
 
   // Construct transaction
   const transactionData = {
-    nonce,
+    nonce: nonce + 1,
     gasLimit: 21000,
     maxFeePerGas,
     maxPriorityFeePerGas,
@@ -75,17 +90,30 @@ async function createPayload(
     common,
   });
   const tx_hash = transaction.getHashedMessageToSign();
-  return { transaction, payload: Array.from(tx_hash) };
+
+  const serializedTx = serializeTransaction({
+    nonce: nonce + 1,
+    gas: BigInt(21000),
+    maxFeePerGas: BigInt(maxFeePerGas),
+    maxPriorityFeePerGas: BigInt(maxPriorityFeePerGas),
+    to: receiver,
+    value: 0n,
+    chainId: chain_id,
+  });
+
+  return { transaction: serializedTx, payload: Array.from(fromHex(serializedTx, "bytes")) };
 }
 
-async function relayTransaction(
-  web3: any,
-  signedTransaction: { serialize: () => Uint8Array }
-) {
-  const _web3 = await web3;
+async function relayTransaction(signedTransaction: {
+  serialize: () => Uint8Array;
+}) {
   const serializedTx = bytesToHex(signedTransaction.serialize());
-  const relayed = await _web3.eth.sendSignedTransaction(serializedTx);
-  return relayed.transactionHash;
+
+  console.log(serializedTx);
+  const relayed = walletClient.sendRawTransaction({
+    serializedTransaction: serializedTx as `0x${string}`,
+  });
+  return relayed;
 }
 
 function reconstructSignature(
@@ -106,7 +134,6 @@ function reconstructSignature(
 }
 
 async function requestSignature(payload: number[], path: any) {
-  // Request signature from MPC
   const request = await account.signAndSendTransaction({
     receiverId: MPC_CONTRACT,
     actions: [functionCall("sign", { path, payload }, 300 * TGAS, NO_DEPOSIT)],
@@ -125,29 +152,25 @@ async function requestSignature(payload: number[], path: any) {
 }
 
 async function queryGasPrice() {
-  const res = await fetch(
-    "https://sepolia.beaconcha.in/api/v1/execution/gasnow"
-  );
-  const json = await res.json();
-  const maxPriorityFeePerGas = BigInt(json.data.standard);
+  const gasPrice = await client.getGasPrice();
 
-  // Since we don't have a direct `baseFeePerGas`, we'll use a workaround.
-  // Ideally, you should fetch the current `baseFeePerGas` from the network.
-  // Here, we'll just set a buffer based on `maxPriorityFeePerGas` for demonstration purposes.
-  // This is NOT a recommended practice for production environments.
-  const buffer = BigInt(2 * 1e9); // Example buffer of 2 Gwei, assuming the API values are in WEI
-  const maxFeePerGas = maxPriorityFeePerGas + buffer;
+  const buffer = BigInt(5 * 1e9);
+  const maxFeePerGas = gasPrice + buffer;
 
-  return { maxFeePerGas, maxPriorityFeePerGas };
+  return { maxFeePerGas, maxPriorityFeePerGas: gasPrice };
 }
 
 const { transaction, payload } = await createPayload(
-  getWeb3("https://rpc.sepolia.ethpandaops.io"),
-  11155111, //84532,
-  process.env.HUB_ACCOUNT_ADDRESS,
+  11155111, // 84532, // 11155111,
+  process.env.ETHEREUM_DERIVED_BY_NEAR_ACCOUNT_PRIVATE_KEY,
   process.env.REGISTRY_ACCOUNT_ADDRESS
 );
 
 const { big_r, big_s } = await requestSignature(payload, DERIVATION_PATH);
 const signedTransaction = reconstructSignature(transaction, big_r, big_s);
-await relayTransaction(getWeb3("https://rpc.sepolia.ethpandaops.io"), signedTransaction);
+
+try {
+  await relayTransaction(signedTransaction);
+} catch (error) {
+  console.log(error);
+}
