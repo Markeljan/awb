@@ -29,6 +29,7 @@ export const metadata: Metadata = {
       },
     ],
   },
+  metadataBase: new URL("https://agentswithbenefits.xyz"),
 };
 
 export default function RootLayout({

@@ -17,9 +17,16 @@ export const ParticleConnect = () => {
   } = useGlobalState();
 
   const { userInfo } = useAuthCore();
-  const { provider } = useEthereum();
+  const { provider, switchChain, chainInfo } = useEthereum();
+
   const { connect, disconnect, connectionStatus, connected } = useConnect();
   const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    if (chainInfo?.id !== BaseSepolia.id) {
+      switchChain(BaseSepolia.id);
+    }
+  }, [chainInfo, switchChain]);
 
   useEffect(() => {
     setMounted(true);

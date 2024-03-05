@@ -3,20 +3,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { useDeployContract } from "@/lib/use-deploy-agent";
 import { daoTokenByteCode, governorByteCode } from "@/lib/contract-source-code";
 import { toast } from "sonner";
 import { useGlobalState } from "@/particle/global-state-provider";
-import { IconLoader2 } from "@tabler/icons-react";
+import { IconExternalLink, IconLoader2 } from "@tabler/icons-react";
 import { daoGovernorAbi, daoTokenAbi } from "@/lib/generated-react";
-import { PublicClient, createPublicClient, encodeDeployData, http, zeroAddress } from "viem";
+import { createPublicClient, encodeDeployData, getContractAddress, http, zeroAddress } from "viem";
 import { Transaction } from "@particle-network/aa";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useEthereum } from "@particle-network/auth-core-modal";
@@ -43,6 +41,12 @@ const FormSchema = z.object({
     .regex(alphaRegex, { message: "DAO name must be alphabetic" }),
   totalSupply: z.string().min(1, { message: "Total supply must be greater than 0" }),
 });
+
+const client = createPublicClient({
+  chain: baseSepolia,
+  transport: http(`${process.env.NEXT_PUBLIC_QUICKNODE_RPC}`),
+});
+
 export function DAODeployer() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -58,6 +62,7 @@ export function DAODeployer() {
   const { provider } = useEthereum();
   const [tokenContractAddress, setTokenContractAddress] = useState<string | null>(null);
   const [governorContractAddress, setGovernorContractAddress] = useState<string | null>(null);
+
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     if (!userAddress) {
       toast.error("Please connect via Particle to deploy a DAO");
@@ -80,7 +85,10 @@ export function DAODeployer() {
       data: encodedDeployData,
     };
 
-    if (!smartAccount) return;
+    if (!smartAccount) {
+      console.error("no smartaccount");
+      return;
+    }
 
     const feeQuotesResult = await smartAccount.getFeeQuotes(deployTx);
     const gaslessUserOp = feeQuotesResult.verifyingPaymasterGasless?.userOp;
@@ -90,24 +98,32 @@ export function DAODeployer() {
 
     const txHash = await smartAccount.sendUserOperation({ userOp: gaslessUserOp, userOpHash: gaslessUserOpHash });
 
-    console.log("txHash", txHash);
+    // WAIT FOR TX RECEIPT
 
-    const client = createPublicClient({
-      chain: baseSepolia,
-      transport: http(),
+    const txReceipt = await waitForTransactionReceipt(client, { hash: txHash as `0x${string}` });
+    console.log("txReceipt", txReceipt);
+    
+
+    const smartAccountNonce = await client.getTransactionCount({ address: userAddress as `0x${string}` });
+
+    const computedContractAddress = getContractAddress({
+      from: userAddress as `0x${string}`,
+      nonce: BigInt(smartAccountNonce),
     });
 
-    const { contractAddress } = await waitForTransactionReceipt(client, {
-      hash: txHash as `0x${string}`,
-    });
+    if (!computedContractAddress) {
+      console.error("no comported contract address");
+      return;
+    }
 
-    if (!contractAddress) return;
+    setTokenContractAddress(computedContractAddress);
+    console.log("contractAddress", computedContractAddress);
 
     toast.success(
       <div className="flex gap-2 w-full justify-center items-center">
         <img src="base.svg" alt="rocket" className="w-16 h-16" />
         <a
-          href={`https://sepolia.basescan.org/address/${contractAddress}`}
+          href={`https://sepolia.basescan.org/address/${computedContractAddress}`}
           target="_blank"
           rel="noreferrer"
           className="underline text-xl"
@@ -116,15 +132,12 @@ export function DAODeployer() {
         </a>
       </div>
     );
-    setTokenContractAddress(contractAddress);
-
-    console.log("contractAddress", contractAddress);
 
     // deploy the governor
     const governorEncodedDeployData = encodeDeployData({
       abi: daoGovernorAbi,
       bytecode: governorByteCode,
-      args: [data.daoName, contractAddress as `0x${string}`, 0n, 30n, 1n, 0n],
+      args: [data.daoName, computedContractAddress as `0x${string}`, 0n, 30n, 1n, 0n],
     });
 
     const governorDeployTx: Transaction = {
@@ -146,17 +159,30 @@ export function DAODeployer() {
 
     console.log("governorTxHash", governorTxHash);
 
-    const { contractAddress: governorContractAddress } = await waitForTransactionReceipt(client, {
-      hash: governorTxHash as `0x${string}`,
+    const computedGovernorContractAddress = getContractAddress({
+      from: userAddress as `0x${string}`,
+      nonce: BigInt(smartAccountNonce) + 1n,
     });
 
-    if (!governorContractAddress) return;
+    if (!computedGovernorContractAddress) {
+      console.error("no comported governor contract address");
+      return;
+    }
+
+    setGovernorContractAddress(computedGovernorContractAddress);
+
+    // if (!governorContractAddress) {
+    //   console.error("no governor contract address");
+    //   return;
+    // }
+
+    setGovernorContractAddress(governorContractAddress);
 
     toast.success(
       <div className="flex gap-2 w-full justify-center items-center">
         <img src="base.svg" alt="rocket" className="w-16 h-16" />
         <a
-          href={`https://sepolia.basescan.org/address/${contractAddress}`}
+          href={`https://sepolia.basescan.org/address/${computedGovernorContractAddress}`}
           target="_blank"
           rel="noreferrer"
           className="underline text-xl"
@@ -166,9 +192,7 @@ export function DAODeployer() {
       </div>
     );
 
-    console.log("governorContractAddress", governorContractAddress);
-
-    setGovernorContractAddress(governorContractAddress);
+    console.log("governorContractAddress", computedGovernorContractAddress);
   }
 
   return (
@@ -227,33 +251,39 @@ export function DAODeployer() {
           </CardContent>
           <CardFooter className="flex w-full justify-between">
             <div className="flex w-full justify-end">
-              {loading ? <IconLoader2 className="animate-spin" /> : null}
               <div className="flex w-1/2 justify-end">
                 <div className="flex w-full space-between gap-2">
-                  {tokenContractAddress && governorContractAddress ? (
-                    <a
-                      className="text-green-500"
-                      href={`https://sepolia.basescan.org/address/${tokenContractAddress}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View Token
-                    </a>
-                  ) : null}
-                  {tokenContractAddress && governorContractAddress ? (
-                    <a
-                      className="text-green-500"
-                      href={`https://sepolia.basescan.org/address/${governorContractAddress}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View DAO
-                    </a>
-                  ) : null}
+                  {tokenContractAddress && (
+                    <div className="flex gap-2">
+                      <a
+                        className="text-green-500"
+                        href={`https://sepolia.basescan.org/address/${tokenContractAddress}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        View Token
+                      </a>
+                      <IconExternalLink className="h-6 w-6" />
+                    </div>
+                  )}
+                  {governorContractAddress && (
+                    <div className="flex gap-2">
+                      <a
+                        className="text-green-500"
+                        href={`https://sepolia.basescan.org/address/${governorContractAddress}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        View DAO
+                      </a>
+                      <IconExternalLink className="h-6 w-6" />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-            <div className="flex w-full justify-end">
+            <div className="flex w-full justify-end items-center gap-4">
+              {loading === true && <IconLoader2 className="animate-spin" />}
               <Button disabled={loading || !form.formState.isValid} type="submit">
                 Deploy DAO
               </Button>
