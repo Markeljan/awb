@@ -6,6 +6,7 @@ import { ParticleProvider } from "@/particle/provider";
 import { UIProvider } from "@/app/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { GlobalStateProvider } from "@/particle/global-state-provider";
+import { Analytics } from "@vercel/analytics/react";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -40,6 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
+        <Analytics />
         <GlobalStateProvider>
           <UIProvider>
             <ParticleProvider>{children}</ParticleProvider>
