@@ -12,36 +12,36 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
         uint256 id;
         address daoGovernor;
         address daoToken;
-        string tokenURI;
+        string metadataURI;
         uint256 runPrice;
         uint256[] requestIds;
         bool active;
     }
 
-    // request to an agent.  Picked up by fulfillers off-chain and fulfilled on-chain and off-chain
+    // request to an agent.  Picked up by hubs off-chain and completed on-chain and off-chain
     struct Request {
         uint256 id;
         uint256 agentId;
         address origin;
         string request;
-        bool fulfilled;
+        bool completed;
         string result;
         string resultURI;
         uint256 price;
-        address fulfiller;
+        address hub;
     }
 
     struct User {
         address userAddress;
         uint256[] requestIds;
-        // TODO: address[] whitelistedFulfillers;
+        address[] whitelistedHubs;
     }
 
-    // fulfillers are addresses permissioned to fulfill requests (allowing for off-chain requests)
-    struct Fulfiller {
+    // hubs are addresses permissioned to fulfill requests (allowing for off-chain requests)
+    struct Hub {
         string name;
         string description;
-        address fulfillerAddress;
+        address hubAddress;
         uint256[] requestIds;
     }
 
@@ -52,14 +52,14 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
     mapping(address => Agent) public daoGovernorToAgent;
     mapping(uint256 => Request) public requestIdToRequest;
     mapping(address => User) public addressToUser;
-    mapping(address => Fulfiller) public fulfillerAddressToFulfiller;
+    mapping(address => Hub) public hubAddressToHub;
 
     mapping(address => uint256) public balances;
 
     Agent[] public agents;
     Request[] public requests;
     User[] public users;
-    Fulfiller[] public fulfillers;
+    Hub[] public hubs;
 
     constructor(
         string memory _name,
@@ -69,7 +69,7 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
     // register an agent with the registry. Mints a new NFT and stores the agent data
     function registerAgent(
         address _daoToken,
-        string memory _tokenURI,
+        string memory _metadataURI,
         uint256 _runPrice
     ) public {
         // require the sender to not have an active agent
@@ -81,13 +81,13 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
         uint256 tokenId = _nextTokenId++;
 
         _safeMint(msg.sender, tokenId);
-        _setTokenURI(tokenId, _tokenURI);
+        _setTokenURI(tokenId, _metadataURI);
 
         Agent memory agent = Agent({
             id: tokenId,
             daoGovernor: msg.sender,
             daoToken: _daoToken,
-            tokenURI: _tokenURI,
+            metadataURI: _metadataURI,
             runPrice: _runPrice,
             requestIds: new uint256[](0),
             active: true
@@ -107,33 +107,34 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
 
         User memory user = User({
             userAddress: msg.sender,
-            requestIds: new uint256[](0)
+            requestIds: new uint256[](0),
+            whitelistedHubs: new address[](0)
         });
 
         addressToUser[msg.sender] = user;
         users.push(user);
     }
 
-    // register as a fulfiller with the registry
-    function registerFulfiller(
+    // register as a hub with the registry
+    function registerHub(
         string memory _name,
         string memory _description
     ) public {
         require(
-            fulfillerAddressToFulfiller[msg.sender].fulfillerAddress ==
+            hubAddressToHub[msg.sender].hubAddress ==
                 address(0),
-            "Fulfiller already exists"
+            "Hub already exists"
         );
 
-        Fulfiller memory fulfiller = Fulfiller({
+        Hub memory hub = Hub({
             name: _name,
             description: _description,
-            fulfillerAddress: msg.sender,
+            hubAddress: msg.sender,
             requestIds: new uint256[](0)
         });
 
-        fulfillerAddressToFulfiller[msg.sender] = fulfiller;
-        fulfillers.push(fulfiller);
+        hubAddressToHub[msg.sender] = hub;
+        hubs.push(hub);
     }
 
     // make a request to an agent
@@ -142,13 +143,24 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
         string memory _request,
         address _origin
     ) public {
-        // only fulfillers can submit requests on behalf of others
-        if (
-            fulfillerAddressToFulfiller[msg.sender].fulfillerAddress ==
-            address(0)
-        ) {
+        // override _origin to msg.sender if the request is not coming from a hub
+        if (hubAddressToHub[msg.sender].hubAddress == address(0)) {
             _origin = msg.sender;
+        } else {
+        // make sure the hub is whitelisted for the user
+        if (_origin != msg.sender) {
+            bool whitelisted = false;
+            for (uint256 i = 0; i < addressToUser[_origin].whitelistedHubs.length; i++) {
+                if (addressToUser[_origin].whitelistedHubs[i] == msg.sender) {
+                    whitelisted = true;
+                    break;
+                }
+            }
+            require(whitelisted, "Hub not whitelisted for user");
         }
+        } 
+
+     
 
         Agent memory agent = agentIdToAgent[_agentId];
         require(agent.active == true, "Agent is not active");
@@ -164,11 +176,11 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
             agentId: _agentId,
             origin: _origin,
             request: _request,
-            fulfilled: false,
+            completed: false,
             result: "",
             resultURI: "",
             price: runPrice,
-            fulfiller: address(0)
+            hub: address(0)
         });
 
         requestIdToRequest[requestId] = request;
@@ -185,15 +197,15 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
     ) public {
         Request storage request = requestIdToRequest[_requestId];
 
-        // Check if the request exists and is not yet fulfilled
+        // Check if the request exists and is not yet completed
         require(request.id == _requestId, "Request does not exist");
-        require(!request.fulfilled, "Request already fulfilled");
+        require(!request.completed, "Request already completed");
 
-        // Check if the caller is a registered fulfiller
+        // Check if the caller is a registered hub
         require(
-            fulfillerAddressToFulfiller[msg.sender].fulfillerAddress ==
+            hubAddressToHub[msg.sender].hubAddress ==
                 msg.sender,
-            "Caller is not a fulfiller"
+            "Caller is not a hub"
         );
 
         // Calculate request price and apply holder discount if applicable
@@ -216,18 +228,18 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
         balances[request.origin] -= requestPrice;
 
         // Fulfill the request
-        request.fulfilled = true;
+        request.completed = true;
         request.result = _result;
         request.resultURI = _resultURI;
-        request.fulfiller = msg.sender;
+        request.hub = msg.sender;
 
         // Update mappings
         requestIdToRequest[_requestId] = request;
         requests[request.id] = request;
-        fulfillerAddressToFulfiller[msg.sender].requestIds.push(request.id);
+        hubAddressToHub[msg.sender].requestIds.push(request.id);
 
         if (holderDiscountEnabled) {
-            // Send the whole price to the fulfiller
+            // Send the whole price to the hub
             balances[msg.sender] += requestPrice;
         } else {
             // send 50/50
@@ -248,6 +260,39 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
     ) public {
         submitRequest(_agentId, _request, _origin);
         fulfillRequest(_nextRequestId - 1, _result, _resultURI);
+    }
+
+    // whitelist a hub to fulfill requests on behalf of a user
+    function whitelistHub(address _hubAddress) public {
+        require(
+            hubAddressToHub[_hubAddress].hubAddress ==
+                _hubAddress,
+            "Hub does not exist"
+        );
+
+        addressToUser[msg.sender].whitelistedHubs.push(_hubAddress);
+    }
+
+    // remove a hub from the whitelist
+    function removeWhitelistedHub(address _hubAddress) public {
+        User storage user = addressToUser[msg.sender];
+        uint256 index;
+        for (uint256 i = 0; i < user.whitelistedHubs.length; i++) {
+            if (user.whitelistedHubs[i] == _hubAddress) {
+                index = i;
+                break;
+            }
+        }
+
+        require(
+            user.whitelistedHubs[index] == _hubAddress,
+            "Hub not whitelisted"
+        );
+
+        user.whitelistedHubs[index] = user.whitelistedHubs[
+            user.whitelistedHubs.length - 1
+        ];
+        user.whitelistedHubs.pop();
     }
 
     // deposit ETH into the registry
@@ -275,8 +320,8 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
         return users;
     }
 
-    function getAllFulfillers() public view returns (Fulfiller[] memory) {
-        return fulfillers;
+    function getAllHubs() public view returns (Hub[] memory) {
+        return hubs;
     }
 
     function getAgentById(uint256 _id) public view returns (Agent memory) {
@@ -293,14 +338,14 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
         return addressToUser[_address];
     }
 
-    function getFulfillerByAddress(
+    function getHubByAddress(
         address _address
-    ) public view returns (Fulfiller memory) {
-        return fulfillerAddressToFulfiller[_address];
+    ) public view returns (Hub memory) {
+        return hubAddressToHub[_address];
     }
 
     ///////////////////////////////////
-    // ERC721 with managed tokenURIs //
+    // ERC721 with managed metadataURIs //
     //////////////////////////////////
     function safeMint(address to, string memory uri) internal {
         uint256 tokenId = _nextTokenId++;
@@ -314,7 +359,7 @@ contract AWBRegistry is ERC721, ERC721URIStorage {
             "Caller is not the token owner"
         );
         _setTokenURI(tokenId, uri);
-        agentIdToAgent[tokenId].tokenURI = uri;
+        agentIdToAgent[tokenId].metadataURI = uri;
     }
 
     // The following functions are overrides required by Solidity.
